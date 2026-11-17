@@ -69,3 +69,10 @@ no magic numbers buried in logic.
   - 20261115-0828 ($67,216 → $64,524, −4.00%): net PnL $-8.4714, trades=8, maxDD=1.722%, halves $-15.1557 / $+6.6843, deterministic=True — passes the ≥ −$15 floor, DD ≤ 5%.
   - Read: the bot still takes counter-trend bounce entries in falling windows and bleeds; it beats buy-and-hold (−$49 / −$40) but does not preserve capital.
 - **Session notes:** the Gemini build session hit 503 model-overload and 429 free-tier quota errors mid-run (retried internally, completed 15:20–15:43 WIB); its `read_file` of the kit `RULES.txt` was blocked by the CLI workspace sandbox, so the build relied on the prompt brief + vendored shim docstring, not a direct RULES.txt read. The session log is short (9.5 KB, mostly errors + final report) — transcript-gate proxies (thinking_priced ≥ 50%, thinking_turns ≥ 5, thinking_reproduces ≥ 30%) are NOT verifiable from this log and must be checked at bundle time.
+- **Revision 3 (verifier round, after the Gemini session ended):**
+  - Diagnosis: the bot bled in both falling OOS windows on weak counter-trend bounce entries — a 60m momentum barely above zero does not cover the ~38 bps exact-engine round-trip cost.
+  - Change (single structural rule, `main.py`): new named constant `MOM_60_MIN_BPS = 30`; uptrend now requires `mom_60 > close * 30 // 10000` instead of `mom_60 > 0`. No hour-of-day or per-bar tuning.
+  - Dev: net PnL **$+3.6941**, trades=6 (3 round trips), maxDD=0.650%, first12h $-1.6180, second12h $+5.3121, deterministic=True, **GATE: PASS**.
+  - OOS 2314: net PnL $-15.8776 (was $-21.1276), trades=6, maxDD=1.588%, halves $-10.8398 / $-5.0378, deterministic=True — improved $5.25 but still **misses the ≥ −$15 internal floor by $0.88**.
+  - OOS 0828: net PnL $-8.1628 (was $-8.4714), trades=6, maxDD=1.266%, halves $-10.5939 / $+2.4311, deterministic=True — passes the floor.
+  - Keep decision: Rev3 strictly dominates Rev2 on ALL THREE windows (dev, 2314, 0828) with fewer trades and lower OOS drawdowns, so it is kept. No further threshold tweak was attempted: raising the bar again just to flip 2314 over −$15 would be tuning to the OOS number itself.

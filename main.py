@@ -24,6 +24,11 @@ TRAILING_ATR_MULT = 7.0
 TP_ATR_MULT = 6.0
 MAX_HOLD_BARS = 300
 COOLDOWN_BARS = 90
+# Minimum established 60m momentum (bps of price) required to enter: the
+# move must clear roughly the ~38 bps exact-engine round-trip cost before
+# the bot chases it. Filters weak counter-trend bounces that bled in the
+# falling OOS windows (2314: -$21.13); genuine trend rides clear it easily.
+MOM_60_MIN_BPS = 30
 
 # Persistent tracking per symbol
 symbol_state = {}
@@ -109,7 +114,7 @@ def on_batch(state, batch):
         is_high_vol = current_atr > (median_atr * HIGHVOL_RATIO_PCT / 100.0)
 
         # Regime detection
-        is_uptrend = (fast_ema > med_ema > slow_ema) and (mom_60 > 0)
+        is_uptrend = (fast_ema > med_ema > slow_ema) and (mom_60 > current_close * MOM_60_MIN_BPS // 10000)
         is_downtrend = (fast_ema < med_ema < slow_ema) and (mom_60 < 0)
 
         held = state.positions.get(sym)
