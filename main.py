@@ -1,3 +1,4 @@
+import hashlib
 import os
 import sys
 import random
@@ -56,7 +57,13 @@ def calc_atr(bars, period=14):
     return sum(recent) / len(recent) if recent else 0.0
 
 def on_hello(state):
-    seed = int(state.hello.get("seed", 42))
+    raw_seed = state.hello.get("seed", 42)
+    try:
+        seed = int(raw_seed)
+    except (TypeError, ValueError):
+        # Harness may send a non-numeric seed label (e.g. "dev"); derive a
+        # stable numeric seed from it instead of crashing at hello.
+        seed = int(hashlib.sha256(str(raw_seed).encode()).hexdigest()[:8], 16)
     random.seed(seed)
     print(f"hello: seed={seed}, symbols={list(state.symbols.keys())}", file=sys.stderr)
 
