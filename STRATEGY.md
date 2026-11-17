@@ -56,6 +56,10 @@ no magic numbers buried in logic.
 
 ## Local grade
 
-(To be filled in by the build session after running replay-driver.py
-twice: net PnL, trades, max drawdown, first-half / second-half PnL,
-and whether the two action logs matched byte for byte.)
+- **Run 1:** net PnL $-56.8689, trades=44, maxDD=5.687%, deterministic=True, GATE: FAIL.
+- **Run 2 (Revision 1):** net PnL $-13.1270, trades=12, maxDD=1.864%, first12h $+0.7437, second12h $-13.8707, deterministic=True, GATE: FAIL.
+  - *Diagnosis:* 12 trades is much better, first half was profitable (+ $0.74), but second half suffered minor drawdowns because trailing stops (`TRAILING_ATR_MULT = 5.0`) were slightly too narrow for minor volatility retracements before continuation.
+- **Revision 2 (Planned & Implemented):**
+  - Widen `TRAILING_ATR_MULT` from 5.0 to 7.0 to give trades more breathing room through normal pullbacks.
+  - Set `TP_ATR_MULT` to 6.0 for quicker taking of profits on medium swings.
+  - Tighten entry momentum condition slightly (`mom_30 > 0` and `mom_15 > 0`) to avoid late entries.
