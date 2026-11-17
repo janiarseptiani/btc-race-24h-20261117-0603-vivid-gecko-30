@@ -63,3 +63,9 @@ no magic numbers buried in logic.
   - Widen `TRAILING_ATR_MULT` from 5.0 to 7.0 to give trades more breathing room through normal pullbacks.
   - Set `TP_ATR_MULT` to 6.0 for quicker taking of profits on medium swings.
   - Tighten entry momentum condition slightly (`mom_30 > 0` and `mom_15 > 0`) to avoid late entries.
+- **Run 3 (Revision 2 final, independently re-verified by the parent-side check):** net PnL $-0.3578, trades=8, maxDD=0.650%, first12h $-1.6180, second12h $+1.2602, deterministic=True, GATE: FAIL (PnL ≤ $0, by $0.36 — essentially breakeven after costs; 4 round trips).
+- **OOS (falling windows, same replay driver):**
+  - 20261113-2314 ($71,409 → $67,901, −4.91%): net PnL $-21.1276, trades=8, maxDD=2.113%, halves $-10.8398 / $-10.2877, deterministic=True — FAILS the ≥ −$15 OOS floor.
+  - 20261115-0828 ($67,216 → $64,524, −4.00%): net PnL $-8.4714, trades=8, maxDD=1.722%, halves $-15.1557 / $+6.6843, deterministic=True — passes the ≥ −$15 floor, DD ≤ 5%.
+  - Read: the bot still takes counter-trend bounce entries in falling windows and bleeds; it beats buy-and-hold (−$49 / −$40) but does not preserve capital.
+- **Session notes:** the Gemini build session hit 503 model-overload and 429 free-tier quota errors mid-run (retried internally, completed 15:20–15:43 WIB); its `read_file` of the kit `RULES.txt` was blocked by the CLI workspace sandbox, so the build relied on the prompt brief + vendored shim docstring, not a direct RULES.txt read. The session log is short (9.5 KB, mostly errors + final report) — transcript-gate proxies (thinking_priced ≥ 50%, thinking_turns ≥ 5, thinking_reproduces ≥ 30%) are NOT verifiable from this log and must be checked at bundle time.
